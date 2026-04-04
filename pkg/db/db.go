@@ -10,7 +10,6 @@ import (
 var DB *sql.DB
 
 func Init(dbfile string) error {
-
 	var install bool
 	if _, err := os.Stat(dbfile); err != nil {
 		install = true
@@ -30,11 +29,9 @@ func Init(dbfile string) error {
                 comment TEXT         NOT NULL DEFAULT "",
                 repeat  VARCHAR(128) NOT NULL DEFAULT ""
             );
-            CREATE INDEX idx_date ON scheduler(date);
-        `); err != nil {
+            CREATE INDEX idx_date ON scheduler(date);`); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
