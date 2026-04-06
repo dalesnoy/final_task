@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"todo_task_final/pkg/api"
@@ -17,6 +18,7 @@ func main() {
 	if err := db.Init(dbfile); err != nil {
 		panic(err)
 	}
+	defer db.DB.Close()
 
 	api.Init()
 
@@ -27,8 +29,9 @@ func main() {
 		port = "7540"
 	}
 
+	log.Printf("Сервер запущен на порту %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 }

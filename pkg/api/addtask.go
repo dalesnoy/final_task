@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 	"todo_task_final/pkg/db"
@@ -14,8 +15,11 @@ func writeJSON(w http.ResponseWriter, data any) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func writeErrorJSON(w http.ResponseWriter, msg string) {
-	writeJSON(w, map[string]string{"error": msg})
+func writeErrorJSON(w http.ResponseWriter, msg string, status int) {
+	log.Printf("ERROR [%d]: %s", status, msg)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{"error": msg})
 }
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,12 +27,12 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
-		writeErrorJSON(w, "Ошибка сериализации данных")
+		writeErrorJSON(w, "Ошибка сериализации данных", http.StatusBadRequest)
 		return
 	}
 
 	if task.Title == "" {
-		writeErrorJSON(w, "Заголовок задачи не указан")
+		writeErrorJSON(w, "Заголовок задачи не указан", http.StatusBadRequest)
 		return
 	}
 
@@ -39,7 +43,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	t, err := time.Parse(Dateformat, task.Date)
 	if err != nil {
-		writeErrorJSON(w, "Некорректная дата")
+		writeErrorJSON(w, "Некорректная дата", http.StatusBadRequest)
 		return
 	}
 
@@ -48,7 +52,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if task.Repeat != "" {
 		next, err = NextDate(time.Now(), task.Date, task.Repeat)
 		if err != nil {
-			writeErrorJSON(w, err.Error())
+			writeErrorJSON(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
@@ -64,7 +68,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := db.AddTask(&task)
 	if err != nil {
-		writeErrorJSON(w, err.Error())
+		writeErrorJSON(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

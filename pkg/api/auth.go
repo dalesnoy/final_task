@@ -19,12 +19,12 @@ func signingHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		writeErrorJSON(w, "Ошибка десериализации данных")
+		writeErrorJSON(w, "Ошибка десериализации данных", http.StatusBadRequest)
 		return
 	}
 
 	if body.Password != password {
-		writeErrorJSON(w, "Неверный пароль")
+		writeErrorJSON(w, "Неверный пароль", http.StatusUnauthorized)
 		return
 	}
 
@@ -32,14 +32,14 @@ func signingHandler(w http.ResponseWriter, r *http.Request) {
 		"password_hash": password,
 	})
 
-	token_String, err := token.SignedString([]byte(jwtSecret))
+	tokenString, err := token.SignedString([]byte(jwtSecret))
 
 	if err != nil {
-		writeErrorJSON(w, "Ошибка генерации токена")
+		writeErrorJSON(w, "Ошибка генерации токена", http.StatusInternalServerError)
 		return
 	}
 
-	writeJSON(w, map[string]string{"token": token_String})
+	writeJSON(w, map[string]string{"token": tokenString})
 }
 
 func auth(next http.HandlerFunc) http.HandlerFunc {

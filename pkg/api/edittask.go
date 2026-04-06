@@ -10,12 +10,12 @@ import (
 func GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
-		writeErrorJSON(w, "ID задачи не указан")
+		writeErrorJSON(w, "ID задачи не указан", http.StatusBadRequest)
 		return
 	}
 	task, err := db.GetTask(id)
 	if err != nil {
-		writeErrorJSON(w, err.Error())
+		writeErrorJSON(w, "задача не найдена", http.StatusNotFound)
 		return
 	}
 	writeJSON(w, task)
@@ -26,17 +26,17 @@ func UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&task)
 
 	if err != nil {
-		writeErrorJSON(w, "Ошибка десериализации данных")
+		writeErrorJSON(w, "Ошибка десериализации данных", http.StatusBadRequest)
 		return
 	}
 
 	if task.ID == "" {
-		writeErrorJSON(w, "ID задачи не указан")
+		writeErrorJSON(w, "ID задачи не указан", http.StatusBadRequest)
 		return
 	}
 
 	if task.Title == "" {
-		writeErrorJSON(w, "Заголовок задачи не указан")
+		writeErrorJSON(w, "Заголовок задачи не указан", http.StatusBadRequest)
 		return
 	}
 
@@ -47,7 +47,7 @@ func UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	t, err := time.Parse(Dateformat, task.Date)
 	if err != nil {
-		writeErrorJSON(w, "Ошибка парсинга даты")
+		writeErrorJSON(w, "Ошибка парсинга даты", http.StatusBadRequest)
 		return
 	}
 
@@ -56,7 +56,7 @@ func UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	if task.Repeat != "" {
 		next, err = NextDate(time.Now(), task.Date, task.Repeat)
 		if err != nil {
-			writeErrorJSON(w, err.Error())
+			writeErrorJSON(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
@@ -72,7 +72,7 @@ func UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	err = db.UpdateTask(&task)
 	if err != nil {
-		writeErrorJSON(w, err.Error())
+		writeErrorJSON(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	writeJSON(w, map[string]any{})

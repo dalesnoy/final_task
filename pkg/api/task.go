@@ -17,20 +17,20 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		deleteTaskHandler(w, r)
 
 	default:
-		writeErrorJSON(w, "Метод не поддерживается")
+		writeErrorJSON(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
 	}
 }
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.FormValue("id")
 	if id == "" {
-		writeErrorJSON(w, "ID задачи не указан")
+		writeErrorJSON(w, "ID задачи не указан", http.StatusBadRequest)
 		return
 	}
 
 	err := db.DeleteTask(id)
 	if err != nil {
-		writeErrorJSON(w, err.Error())
+		writeErrorJSON(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
